@@ -10,8 +10,6 @@ const progressSteps = document.querySelectorAll("[data-progress-step]");
 const accordionGroup = document.querySelector("[data-accordion-group]");
 
 const colosseumStartButton = document.querySelector("[data-colosseum-start]");
-const countdownBlock = document.querySelector("[data-countdown-block]");
-const countdownValue = document.querySelector("[data-countdown-value]");
 const handleBlock = document.querySelector("[data-handle-block]");
 const stepTwoSubmit = document.querySelector("[data-step-two-submit]");
 const discordLink = document.querySelector("[data-discord-link]");
@@ -29,6 +27,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let currentStep = 1;
 let countdownTimer = null;
 let isSubmitting = false;
+let isStepTwoLoading = false;
 let submission = {
   name: "",
   email: "",
@@ -109,7 +108,7 @@ function setStep(step) {
   if (step >= 2 && submission.colosseumHandle) {
     handleBlock.hidden = false;
     stepTwoSubmit.hidden = false;
-    countdownBlock.hidden = true;
+    updateColosseumButtonState(false);
   }
 
   if (step === 3) {
@@ -120,12 +119,23 @@ function setStep(step) {
 }
 
 function resetStepTwoUI() {
-  clearInterval(countdownTimer);
+  clearTimeout(countdownTimer);
   countdownTimer = null;
-  countdownBlock.hidden = true;
+  isStepTwoLoading = false;
   handleBlock.hidden = true;
   stepTwoSubmit.hidden = true;
-  countdownValue.textContent = "10";
+  updateColosseumButtonState(false);
+}
+
+function updateColosseumButtonState(isLoading) {
+  if (!colosseumStartButton) {
+    return;
+  }
+
+  isStepTwoLoading = isLoading;
+  colosseumStartButton.disabled = isLoading;
+  colosseumStartButton.classList.toggle("is-loading", isLoading);
+  colosseumStartButton.textContent = isLoading ? "Abrindo Colosseum..." : "Abrir Colosseum";
 }
 
 function resetFlow() {
@@ -386,7 +396,7 @@ function finishFlow() {
   modalStepLabel.textContent = "Concluído";
   modalTitle.textContent = "Inscrição recebida";
   modalDescription.textContent =
-    "Este protótipo salva os dados localmente. O próximo passo pode ser conectar um backend real.";
+    "Seu registro foi concluído e você já pode seguir a campanha pela comunidade.";
   successPanel.hidden = false;
   persistDraft();
 }
@@ -491,27 +501,22 @@ forms.forEach((form) => {
 });
 
 colosseumStartButton.addEventListener("click", () => {
+  if (isStepTwoLoading) {
+    return;
+  }
+
   window.open(COLOSSEUM_URL, "_blank", "noopener,noreferrer");
   resetStepTwoUI();
-  countdownBlock.hidden = false;
+  updateColosseumButtonState(true);
   persistDraft();
 
-  let remainingSeconds = 10;
-  countdownValue.textContent = String(remainingSeconds);
-
-  countdownTimer = window.setInterval(() => {
-    remainingSeconds -= 1;
-    countdownValue.textContent = String(remainingSeconds);
-
-    if (remainingSeconds <= 0) {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
-      countdownBlock.hidden = true;
-      handleBlock.hidden = false;
-      stepTwoSubmit.hidden = false;
-      persistDraft();
-    }
-  }, 1000);
+  countdownTimer = window.setTimeout(() => {
+    countdownTimer = null;
+    updateColosseumButtonState(false);
+    handleBlock.hidden = false;
+    stepTwoSubmit.hidden = false;
+    persistDraft();
+  }, 10000);
 });
 
 if (discordLink) {
