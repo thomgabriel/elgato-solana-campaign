@@ -15,7 +15,7 @@ const stepTwoSubmit = document.querySelector("[data-step-two-submit]");
 const discordLink = document.querySelector("[data-discord-link]");
 const discordConfirmWrap = document.querySelector("[data-discord-confirm-wrap]");
 
-const COLOSSEUM_URL = "https://colosseum.com/get-started";
+const COLOSSEUM_URL = "https://arena.colosseum.org?ref=elgato";
 const API_ENDPOINT = "/api/register";
 const STORAGE_KEY = "elgato-solana-campaign-submissions";
 const DRAFT_STORAGE_KEY = "elgato-solana-campaign-draft";
