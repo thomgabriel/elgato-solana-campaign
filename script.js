@@ -13,7 +13,6 @@ const colosseumStartButton = document.querySelector("[data-colosseum-start]");
 const handleBlock = document.querySelector("[data-handle-block]");
 const stepTwoSubmit = document.querySelector("[data-step-two-submit]");
 const discordLink = document.querySelector("[data-discord-link]");
-const discordConfirmWrap = document.querySelector("[data-discord-confirm-wrap]");
 
 const COLOSSEUM_URL = "https://arena.colosseum.org?ref=elgato";
 const API_ENDPOINT = "/api/register";
@@ -54,17 +53,9 @@ const stepContent = {
   3: {
     label: "Passo 3",
     title: "Entre na comunidade",
-    description: "Entre no Discord e depois confirme aqui para finalizar o fluxo.",
+    description: "Entre no Discord para finalizar sua inscrição e acessar a comunidade.",
   },
 };
-
-function syncStepThreeUI() {
-  if (!discordConfirmWrap) {
-    return;
-  }
-
-  discordConfirmWrap.hidden = !submission.discordJoined;
-}
 
 function openModal() {
   hydrateDraft();
@@ -109,10 +100,6 @@ function setStep(step) {
     handleBlock.hidden = false;
     stepTwoSubmit.hidden = false;
     updateColosseumButtonState(false);
-  }
-
-  if (step === 3) {
-    syncStepThreeUI();
   }
 
   persistDraft();
@@ -163,7 +150,6 @@ function syncFormValues() {
   document.querySelector('input[name="whatsapp"]').value = submission.whatsapp;
   document.querySelector('select[name="profile"]').value = submission.profile;
   document.querySelector('input[name="colosseumHandle"]').value = submission.colosseumHandle;
-  syncStepThreeUI();
 }
 
 function getFieldWrapper(field) {
@@ -278,11 +264,6 @@ function validateForm(form) {
       setFieldError(handleField, "Digite seu handle no Colosseum.");
       isValid = false;
     }
-  }
-
-  if (step === 3 && !submission.discordJoined) {
-    setFormStatus(form, "Entre no Discord antes de concluir sua inscrição.", "error");
-    isValid = false;
   }
 
   return isValid;
@@ -478,24 +459,7 @@ forms.forEach((form) => {
     }
 
     if (step === 3) {
-      if (isSubmitting) {
-        return;
-      }
-
-      isSubmitting = true;
-      setFormStatus(form, "Salvando sua inscricao...", "info");
-
-      submitRegistration(submission)
-        .then(() => {
-          saveSubmission();
-          finishFlow();
-        })
-        .catch((error) => {
-          setFormStatus(form, error.message, "error");
-        })
-        .finally(() => {
-          isSubmitting = false;
-        });
+      return;
     }
   });
 });
@@ -522,8 +486,27 @@ colosseumStartButton.addEventListener("click", () => {
 if (discordLink) {
   discordLink.addEventListener("click", () => {
     submission.discordJoined = true;
-    syncStepThreeUI();
     persistDraft();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    isSubmitting = true;
+    submitRegistration(submission)
+      .then(() => {
+        saveSubmission();
+        finishFlow();
+      })
+      .catch(() => {
+        const form = document.querySelector('[data-step="3"]');
+        if (form) {
+          setFormStatus(form, "Erro ao salvar. Tente novamente.", "error");
+        }
+      })
+      .finally(() => {
+        isSubmitting = false;
+      });
   });
 }
 
