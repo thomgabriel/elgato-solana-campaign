@@ -34,22 +34,12 @@ function getSqlClient() {
 }
 
 function validatePayload(body) {
-  const requiredFields = [
-    "name",
-    "email",
-    "whatsapp",
-    "profile",
-    "colosseumHandle",
-  ];
+  const requiredFields = ["name", "email", "whatsapp", "profile"];
 
   for (const field of requiredFields) {
     if (!body[field] || typeof body[field] !== "string" || !body[field].trim()) {
       return `Campo obrigatorio ausente: ${field}.`;
     }
-  }
-
-  if (!body.discordJoined) {
-    return "Discord precisa estar confirmado.";
   }
 
   return null;
@@ -88,8 +78,6 @@ module.exports = async function handler(req, res) {
     email: body.email.trim().toLowerCase(),
     whatsapp: body.whatsapp.trim(),
     profile: body.profile.trim(),
-    colosseum_handle: body.colosseumHandle.trim(),
-    discord_joined: Boolean(body.discordJoined),
     source: body.source || "elgato-solana-campaign",
     submitted_at: new Date().toISOString(),
     user_agent: req.headers["user-agent"] || null,
@@ -103,8 +91,6 @@ module.exports = async function handler(req, res) {
         email,
         whatsapp,
         profile,
-        colosseum_handle,
-        discord_joined,
         source,
         submitted_at,
         user_agent
@@ -114,12 +100,16 @@ module.exports = async function handler(req, res) {
         ${payload.email},
         ${payload.whatsapp},
         ${payload.profile},
-        ${payload.colosseum_handle},
-        ${payload.discord_joined},
         ${payload.source},
         ${payload.submitted_at},
         ${payload.user_agent}
       )
+      on conflict (email) do update set
+        name = excluded.name,
+        whatsapp = excluded.whatsapp,
+        profile = excluded.profile,
+        submitted_at = excluded.submitted_at,
+        user_agent = excluded.user_agent
       returning id
     `;
 
