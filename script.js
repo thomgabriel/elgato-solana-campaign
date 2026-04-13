@@ -36,7 +36,7 @@ const stepContent = {
     label: "Passo 2",
     title: "Crie sua conta e entre na comunidade",
     description:
-      "Sua inscrição foi salva. Agora crie sua conta no Colosseum e entre no Discord.",
+      "Sua inscrição foi salva. <strong>Agora crie sua conta no Colosseum e entre no Discord.</strong>",
   },
 };
 
@@ -64,7 +64,7 @@ function setStep(step) {
   const copy = stepContent[step];
   modalStepLabel.textContent = copy.label;
   modalTitle.textContent = copy.title;
-  modalDescription.textContent = copy.description;
+  modalDescription.innerHTML = copy.description;
 
   progressSteps.forEach((stepNode) => {
     const stepNumber = Number(stepNode.dataset.progressStep);
